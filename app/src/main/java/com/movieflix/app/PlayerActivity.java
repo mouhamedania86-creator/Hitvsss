@@ -1195,4 +1195,28 @@ public class PlayerActivity extends Activity {
         if (h > 0) return String.format(Locale.US, "%d:%02d:%02d", h, m, sec);
         return String.format(Locale.US, "%02d:%02d", m, sec);
     }
+
+    private void saveWatchProgress() {
+        try {
+            long pos = currentPos();
+            long dur = 0;
+            try {
+                if (usingExo && player != null) dur = player.getDuration();
+                else if (fallback != null) dur = fallback.getDuration();
+            } catch (Throwable ignored) {}
+            Intent in = getIntent();
+            String id = in != null ? in.getStringExtra("id") : null;
+            String title = in != null ? in.getStringExtra("title") : null;
+            String poster = in != null ? in.getStringExtra("poster") : null;
+            if (id == null || id.length() == 0) {
+                // try common extras from original
+                id = in != null ? in.getStringExtra("vodId") : null;
+            }
+            if (id != null && id.length() > 0) {
+                WatchStats.saveProgress(this, id, title, poster, pos, dur);
+                if (pos > 0) WatchStats.addWatchSeconds(this, Math.max(1, pos / 1000));
+            }
+        } catch (Throwable ignored) {}
+    }
+
 }
